@@ -1,0 +1,41 @@
+# Python
+chess_env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data files
+*.pgn
+*.zst
+*.csv
+*.db
+*.sqlite
+
+# Database
+*.sql.backup
+
+# OS
+.DS_Store
+.vscode/
+.idea/
+
+# Environment variables
+.env
+config.py
+
+# Model files
+*.h5
+*.pkl
+*.joblib
+models/saved_models/
