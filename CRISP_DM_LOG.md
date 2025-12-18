@@ -41,7 +41,7 @@
 - **Volume:** 1,000 games sampled from 4M games
 - **Format:** PGN (Portable Game Notation)
 - **Size:** 2.2 MB
-- **Date:** 2024-12-13
+- **Date:** 2025-12-13
 
 ### Data Description ✅
 **Games Dataset:**
@@ -114,30 +114,30 @@
 
 | Date | Phase | Activity | Outcome |
 |------|-------|----------|---------|
-| 2024-12-12 | Phase 1 | Project setup | Environment ready |
-| 2024-12-12 | Phase 1 | Database design | Schema created |
-| 2024-12-13 | Phase 2 | Data collection | 1,000 games downloaded |
-| 2024-12-13 | Phase 2 | Initial load | 100 games, 673 positions |
-| 2024-12-13 | Phase 2 | Data quality check | Passed with minor issues |
-| 2024-12-17 | Phase C | Data pipeline scaled up | 2,200 games, 148k positions |
+| 2025-12-12 | Phase 1 | Project setup | Environment ready |
+| 2025-12-12 | Phase 1 | Database design | Schema created |
+| 2025-12-13 | Phase 2 | Data collection | 1,000 games downloaded |
+| 2025-12-13 | Phase 2 | Initial load | 100 games, 673 positions |
+| 2025-12-13 | Phase 2 | Data quality check | Passed with minor issues |
+| 2025-12-17 | Phase C | Data pipeline scaled up | 2,200 games, 148k positions |
 ---
 
 ## Key Decisions
 
 ### Decision 1: Database Choice
-- **Date:** 2024-12-12
+- **Date:** 2025-12-12
 - **Options:** PostgreSQL vs SQLite vs MongoDB
 - **Decision:** PostgreSQL
 - **Rationale:** Production-ready, great for ML pipelines, SQL expertise transferable
 
 ### Decision 2: Data Volume
-- **Date:** 2024-12-13
+- **Date:** 2025-12-13
 - **Options:** 1K, 10K, or 100K games
 - **Decision:** Start with 1K games
 - **Rationale:** Faster iteration, validate pipeline, scale later
 
 ### Decision 3: Position Extraction
-- **Date:** 2024-12-13
+- **Date:** 2025-12-13
 - **Options:** Store only game results vs store all positions
 - **Decision:** Store all positions
 - **Rationale:** Needed for supervised learning, enables position-level analysis

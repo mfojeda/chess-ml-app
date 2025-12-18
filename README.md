@@ -24,4 +24,4 @@ chess_project/
 3. Run data pipeline notebooks
 
 ## Development Log
-- 2024-12-12 - Initial setup and database schema
+- 2025-12-12 - Initial setup and database schema
