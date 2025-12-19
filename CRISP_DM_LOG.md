@@ -62,11 +62,12 @@
 - ⚠️ Some duplicate games (ran load twice - to clean)
 
 ### Data Exploration 📊 NEXT STEPS
-- [ ] ELO distribution analysis
-- [ ] Opening success rates
-- [ ] Move frequency analysis
-- [ ] Position evaluation patterns
-- [ ] Win correlation with ELO difference
+- [x] ELO distribution analysis (bell curve, 568-3003 range)
+- [x] Opening success rates (392 unique openings)
+- [x] Move frequency analysis (e4 most popular: 431 games)
+- [x] Win correlation with ELO difference (confirmed strong correlation)
+- [x] Game length statistics (avg 69 moves, range 2-242)
+- [x] Visualizations created (8+ charts including distributions, win rates, openings) [ ] Position evaluation patterns
 
 ---
 
