@@ -120,6 +120,7 @@
 | 2025-12-13 | Phase 2 | Initial load | 100 games, 673 positions |
 | 2025-12-13 | Phase 2 | Data quality check | Passed with minor issues |
 | 2025-12-17 | Phase C | Data pipeline scaled up | 2,200 games, 148k positions |
+| 2025-12-18 | Phase D |Exploratory Data Analysis | Visualizations, patterns identified, ready for ML |
 ---
 
 ## Key Decisions
