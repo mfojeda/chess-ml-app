@@ -1,0 +1,16 @@
+{
+  "total_games": 2200,
+  "total_positions": 148320,
+  "unique_openings": 392,
+  "avg_game_length": 68.9,
+  "elo_range": [
+    568,
+    3003
+  ],
+  "avg_elo": 1650,
+  "white_win_rate": 51.0,
+  "black_win_rate": 45.1,
+  "draw_rate": 3.9,
+  "most_common_opening": "Queen's Pawn Game",
+  "most_popular_first_move": "e4"
+}
