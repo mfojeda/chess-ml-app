@@ -25,3 +25,4 @@ chess_project/
 
 ## Development Log
 - 2025-12-12 - Initial setup and database schema
+- 2025-12-18 - Completed Exploratory Data Analysis
