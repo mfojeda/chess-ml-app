@@ -100,6 +100,11 @@
 - Candidate: Supervised learning (position → move)
 - Candidate: Neural network architecture
 - TBD: Evaluate alternatives
+- Model type: Neural network (4 layers, 135K parameters)
+- Features: 65 (64 board squares + turn indicator)
+- Target: 1,188 unique chess moves
+- Performance: 6.95% accuracy (87x better than random)
+- Saved: chess_move_predictor_v1.keras
 
 ---
 
@@ -122,6 +127,7 @@
 | 2025-12-13 | Phase 2 | Data quality check | Passed with minor issues |
 | 2025-12-17 | Phase C | Data pipeline scaled up | 2,200 games, 148k positions |
 | 2025-12-18 | Phase D |Exploratory Data Analysis | Visualizations, patterns identified, ready for ML |
+| 2025-12-21 | Phsae E | ML Model Training| Neural network built, 6.95% accuracy, model saved |
 ---
 
 ## Key Decisions
