@@ -6,7 +6,7 @@ import sys
 import os
 
 import chess
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, render_template, request
 from sqlalchemy import text
 
 # Allow importing from data/scripts at the project root
@@ -15,7 +15,12 @@ from db_connection import get_engine
 
 from app.model import predict_move
 
-api = Blueprint('api', __name__)
+api = Blueprint('api', __name__, template_folder='templates')
+
+
+@api.route('/')
+def index():
+    return render_template('index.html')
 
 
 @api.route('/api/move', methods=['POST'])

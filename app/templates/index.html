@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chess AI</title>
+
+  <!-- chess.js: legal move validation, FEN parsing, game state -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    header {
+      width: 100%;
+      padding: 16px 20px 10px;
+      text-align: center;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 700; color: #c9d1d9; letter-spacing: 1px; }
+    header p  { font-size: 0.8rem; color: #8b949e; margin-top: 2px; }
+
+    /* ── Status bar ───────────────────────────────────────────── */
+    #status {
+      width: 100%;
+      max-width: 420px;
+      padding: 8px 16px;
+      text-align: center;
+      font-size: 0.9rem;
+      min-height: 36px;
+    }
+    #status.thinking { color: #f0a500; }
+    #status.your-turn { color: #58a6ff; }
+    #status.game-over { color: #f85149; font-weight: 600; }
+
+    /* ── Board wrapper — fills width on mobile ────────────────── */
+    #board-wrap {
+      width: min(96vw, 420px);
+      aspect-ratio: 1;
+      position: relative;
+    }
+
+    /* ── SVG board ────────────────────────────────────────────── */
+    #board {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 4px;
+      overflow: hidden;
+      touch-action: none;  /* prevent scroll while tapping pieces */
+    }
+
+    /* ── Controls ─────────────────────────────────────────────── */
+    #controls {
+      display: flex;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    button {
+      flex: 1;
+      max-width: 160px;
+      padding: 12px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:active { opacity: 0.7; }
+    #btn-new  { background: #238636; color: #fff; }
+    #btn-flip { background: #30363d; color: #c9d1d9; }
+
+    /* ── Move history ─────────────────────────────────────────── */
+    #history-wrap {
+      width: min(96vw, 420px);
+      background: #161b22;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    #history-wrap h2 { font-size: 0.75rem; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    #move-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      font-size: 0.85rem;
+      font-family: 'Courier New', monospace;
+    }
+    .move-pair { color: #c9d1d9; }
+    .move-num  { color: #8b949e; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Chess AI</h1>
+    <p>You play White · AI plays Black</p>
+  </header>
+
+  <div id="status" class="your-turn">Your turn</div>
+
+  <div id="board-wrap">
+    <!-- SVG board rendered by JS below -->
+    <svg id="board" viewBox="0 0 400 400"></svg>
+  </div>
+
+  <div id="controls">
+    <button id="btn-new">New Game</button>
+    <button id="btn-flip">Flip Board</button>
+  </div>
+
+  <div id="history-wrap">
+    <h2>Moves</h2>
+    <div id="move-list"></div>
+  </div>
+
+  <script>
+    // ── Constants ──────────────────────────────────────────────
+    const LIGHT = '#f0d9b5';
+    const DARK  = '#b58863';
+    const SEL   = 'rgba(20,  85, 30,  0.6)';   // selected piece highlight
+    const LEGAL = 'rgba(20,  85, 30,  0.35)';  // legal move dot
+    const LAST  = 'rgba(155, 199, 0,   0.41)'; // last move highlight
+
+    // Unicode chess pieces keyed by piece code (color + type)
+    const GLYPHS = {
+      wP:'♙', wN:'♘', wB:'♗', wR:'♖', wQ:'♕', wK:'♔',
+      bP:'♟', bN:'♞', bB:'♝', bR:'♜', bQ:'♛', bK:'♚',
+    };
+
+    // ── State ──────────────────────────────────────────────────
+    const game   = new Chess();          // chess.js game object
+    let flipped  = false;                // board orientation
+    let selected = null;                 // currently selected square ('e2' etc)
+    let lastMove = null;                 // {from, to} for highlight
+    let locked   = false;               // true while waiting for AI response
+
+    const svg       = document.getElementById('board');
+    const statusEl  = document.getElementById('status');
+    const moveListEl= document.getElementById('move-list');
+
+    // ── Coordinate helpers ─────────────────────────────────────
+    // Map a square name ('e2') to pixel {x, y} of the top-left of that cell.
+    // Each cell is 50×50 px inside a 400×400 viewBox.
+    function squareToXY(sq) {
+      const file = sq.charCodeAt(0) - 97;  // a=0 … h=7
+      const rank = parseInt(sq[1]) - 1;    // 1=0 … 8=7
+      const col  = flipped ? 7 - file : file;
+      const row  = flipped ? rank : 7 - rank;
+      return { x: col * 50, y: row * 50 };
+    }
+
+    function xyToSquare(px, py) {
+      const col  = Math.floor(px / 50);
+      const row  = Math.floor(py / 50);
+      const file = flipped ? 7 - col : col;
+      const rank = flipped ? row : 7 - row;
+      if (file < 0 || file > 7 || rank < 0 || rank > 7) return null;
+      return String.fromCharCode(97 + file) + (rank + 1);
+    }
+
+    // ── SVG helpers ────────────────────────────────────────────
+    function svgEl(tag, attrs) {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      return el;
+    }
+
+    // ── Draw ───────────────────────────────────────────────────
+    function draw() {
+      svg.innerHTML = '';  // clear
+
+      // 1. Squares
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const light = (row + col) % 2 === 0;
+          svg.appendChild(svgEl('rect', {
+            x: col * 50, y: row * 50, width: 50, height: 50,
+            fill: light ? LIGHT : DARK,
+          }));
+        }
+      }
+
+      // 2. Last-move highlight
+      if (lastMove) {
+        for (const sq of [lastMove.from, lastMove.to]) {
+          const {x, y} = squareToXY(sq);
+          svg.appendChild(svgEl('rect', { x, y, width: 50, height: 50, fill: LAST }));
+        }
+      }
+
+      // 3. Selected square + legal move dots
+      if (selected) {
+        const {x, y} = squareToXY(selected);
+        svg.appendChild(svgEl('rect', { x, y, width: 50, height: 50, fill: SEL }));
+
+        const moves = game.moves({ square: selected, verbose: true });
+        for (const m of moves) {
+          const {x: mx, y: my} = squareToXY(m.to);
+          const hasPiece = game.get(m.to);
+          if (hasPiece) {
+            // Ring for capture
+            svg.appendChild(svgEl('rect', { x: mx, y: my, width: 50, height: 50, fill: LEGAL }));
+          } else {
+            // Dot for empty square
+            svg.appendChild(svgEl('circle', {
+              cx: mx + 25, cy: my + 25, r: 10, fill: LEGAL,
+            }));
+          }
+        }
+      }
+
+      // 4. Rank & file labels
+      for (let i = 0; i < 8; i++) {
+        const rank = flipped ? i + 1 : 8 - i;
+        const file = String.fromCharCode(97 + (flipped ? 7 - i : i));
+        svg.appendChild(Object.assign(svgEl('text', {
+          x: 2, y: i * 50 + 14, 'font-size': 11, fill: i % 2 === 0 ? DARK : LIGHT,
+          'font-family': 'sans-serif', 'font-weight': 'bold',
+        }), { textContent: rank }));
+        svg.appendChild(Object.assign(svgEl('text', {
+          x: i * 50 + 36, y: 398, 'font-size': 11, fill: i % 2 === 0 ? LIGHT : DARK,
+          'font-family': 'sans-serif', 'font-weight': 'bold',
+        }), { textContent: file }));
+      }
+
+      // 5. Pieces
+      const board = game.board();
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const file = flipped ? 7 - col : col;
+          const rank = flipped ? row : 7 - row;
+          const piece = board[7 - rank][file];
+          if (!piece) continue;
+          const key   = piece.color + piece.type.toUpperCase();
+          const glyph = GLYPHS[key];
+          const text  = svgEl('text', {
+            x: col * 50 + 25, y: row * 50 + 38,
+            'text-anchor': 'middle',
+            'font-size': 38,
+            'font-family': 'serif',
+            style: 'pointer-events:none; user-select:none;',
+          });
+          text.textContent = glyph;
+          svg.appendChild(text);
+        }
+      }
+    }
+
+    // ── Status helper ──────────────────────────────────────────
+    function setStatus(msg, cls) {
+      statusEl.textContent = msg;
+      statusEl.className   = cls;
+    }
+
+    // ── Move history ───────────────────────────────────────────
+    function updateHistory() {
+      const history = game.history();
+      moveListEl.innerHTML = '';
+      for (let i = 0; i < history.length; i += 2) {
+        const pair = document.createElement('span');
+        pair.className = 'move-pair';
+        const num = document.createElement('span');
+        num.className = 'move-num';
+        num.textContent = `${i / 2 + 1}.`;
+        pair.appendChild(num);
+        pair.append(' ' + history[i] + (history[i + 1] ? ' ' + history[i + 1] : ''));
+        moveListEl.appendChild(pair);
+      }
+      moveListEl.scrollTop = moveListEl.scrollHeight;
+    }
+
+    // ── Handle tap/click on a square ──────────────────────────
+    function handleSquare(sq) {
+      if (locked || game.game_over()) return;
+      if (game.turn() !== 'w') return;  // only White's turn
+
+      const piece = game.get(sq);
+
+      if (selected) {
+        // Attempt the move
+        const move = game.move({ from: selected, to: sq, promotion: 'q' });
+        if (move) {
+          lastMove = { from: selected, to: sq };
+          selected = null;
+          updateHistory();
+          draw();
+          if (game.game_over()) {
+            setStatus(gameOverMessage(), 'game-over');
+          } else {
+            aiMove();
+          }
+          return;
+        }
+        // Clicked same color piece — re-select
+        if (piece && piece.color === 'w') {
+          selected = sq;
+          draw();
+          return;
+        }
+        selected = null;
+        draw();
+        return;
+      }
+
+      // Select a white piece
+      if (piece && piece.color === 'w') {
+        selected = sq;
+        draw();
+      }
+    }
+
+    // ── SVG click → square ────────────────────────────────────
+    svg.addEventListener('click', e => {
+      const rect = svg.getBoundingClientRect();
+      const scaleX = 400 / rect.width;
+      const scaleY = 400 / rect.height;
+      const px = (e.clientX - rect.left) * scaleX;
+      const py = (e.clientY - rect.top)  * scaleY;
+      const sq = xyToSquare(px, py);
+      if (sq) handleSquare(sq);
+    });
+
+    // ── AI move via API ────────────────────────────────────────
+    async function aiMove() {
+      locked = true;
+      setStatus('AI is thinking…', 'thinking');
+
+      try {
+        const res = await fetch('/api/move', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fen: game.fen(), top_k: 1 }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          setStatus('AI error: ' + (data.error || res.status), 'game-over');
+          locked = false;
+          return;
+        }
+
+        // Parse SAN move and apply it
+        const move = game.move(data.move);
+        if (move) {
+          lastMove = { from: move.from, to: move.to };
+          updateHistory();
+        }
+      } catch (err) {
+        setStatus('Network error', 'game-over');
+      }
+
+      locked = false;
+      draw();
+
+      if (game.game_over()) {
+        setStatus(gameOverMessage(), 'game-over');
+      } else {
+        setStatus('Your turn', 'your-turn');
+      }
+    }
+
+    // ── Game-over message ──────────────────────────────────────
+    function gameOverMessage() {
+      if (game.in_checkmate()) return game.turn() === 'w' ? 'Checkmate — AI wins' : 'Checkmate — You win!';
+      if (game.in_draw())     return 'Draw';
+      if (game.in_stalemate()) return 'Stalemate';
+      return 'Game over';
+    }
+
+    // ── Buttons ────────────────────────────────────────────────
+    document.getElementById('btn-new').addEventListener('click', () => {
+      game.reset();
+      selected = null;
+      lastMove = null;
+      locked   = false;
+      updateHistory();
+      draw();
+      setStatus('Your turn', 'your-turn');
+    });
+
+    document.getElementById('btn-flip').addEventListener('click', () => {
+      flipped = !flipped;
+      draw();
+    });
+
+    // ── Init ───────────────────────────────────────────────────
+    draw();
+    setStatus('Your turn', 'your-turn');
+  </script>
+
+</body>
+</html>
