@@ -28,9 +28,9 @@
 
 ### Project Plan
 - **Phase A-C:** ✅ Complete (Setup, Database, Data Pipeline)
-- **Phase D:** ⏳ Next (Exploratory Data Analysis)
-- **Phase E:** Modeling
-- **Phase F-I:** API, Frontend, Deployment
+- **Phase D:** ✅ Complete (Exploratory Data Analysis)
+- **Phase E:** ✅ Complete (Modeling — V1 & V2)
+- **Phase F-I:** ⏳ Next (Evaluation, API, Frontend, Deployment)
 
 ---
 
@@ -71,40 +71,45 @@
 
 ---
 
-## Phase 3: Data Preparation ⏳ TODO
+## Phase 3: Data Preparation ✅ COMPLETE (V2)
 
 ### Data Selection
-- TBD: Select games above certain ELO threshold?
-- TBD: Focus on specific openings?
+- ✅ Used all available positions (112,466 from 2,200 games) — no ELO filter applied
+- ✅ All 392 openings included
 
 ### Data Cleaning
-- TBD: Remove duplicate games
-- TBD: Handle missing ELO values
-- TBD: Validate all FEN notations
+- ✅ Duplicate positions handled via full dataset reload
+- ✅ FEN notations validated through python-chess library
 
-### Feature Engineering
-- TBD: Convert FEN to numeric features
-- TBD: Encode piece positions
-- TBD: Create board evaluation features
+### Feature Engineering ✅
+- ✅ 12 binary planes per piece type (6 piece types × 2 colors × 64 squares = 768 values)
+- ✅ Additional features: castling rights (4), side-to-move (1) → **781 total features**
+- ✅ Legal move masking at inference time (filters illegal moves from predictions)
 
-### Data Transformation
-- TBD: Normalize features
-- TBD: Train/test split (80/20)
-- TBD: Create validation set
+### Data Transformation ✅
+- ✅ Train/validation split applied during model training
+- ✅ LabelEncoder for 1,841 unique target moves (saved as label_encoder_v2.pkl)
 
 ---
 
-## Phase 4: Modeling ⏳ TODO
+## Phase 4: Modeling ✅ COMPLETE
 
-### Modeling Technique Selection
-- Candidate: Supervised learning (position → move)
-- Candidate: Neural network architecture
-- TBD: Evaluate alternatives
-- Model type: Neural network (4 layers, 135K parameters)
+### V1 Model — 2025-12-21
+- Model type: Dense neural network (256→128→64 layers, 135K parameters)
 - Features: 65 (64 board squares + turn indicator)
 - Target: 1,188 unique chess moves
-- Performance: 6.95% accuracy (87x better than random)
-- Saved: chess_move_predictor_v1.keras
+- Training data: 10,000 positions
+- Performance: **6.95% top-1 accuracy (87x better than random baseline)**
+- Saved: `chess_move_predictor_v1.keras`
+
+### V2 Model — 2026-03-01
+- Model type: Dense neural network with batch normalization (1024→512→256 layers)
+- Features: **781** (12 binary planes per piece type + castling rights + side-to-move)
+- Target: 1,841 unique chess moves
+- Training data: 112,466 positions (full dataset)
+- Performance: **~55% top-1 accuracy, top-3 and top-5 metrics tracked**
+- Legal move masking applied at inference time
+- Saved: `chess_move_predictor_v2.keras`
 
 ---
 
@@ -127,7 +132,8 @@
 | 2025-12-13 | Phase 2 | Data quality check | Passed with minor issues |
 | 2025-12-17 | Phase C | Data pipeline scaled up | 2,200 games, 148k positions |
 | 2025-12-18 | Phase D |Exploratory Data Analysis | Visualizations, patterns identified, ready for ML |
-| 2025-12-21 | Phsae E | ML Model Training| Neural network built, 6.95% accuracy, model saved |
+| 2025-12-21 | Phase E | ML Model Training (V1) | Neural network built, 6.95% accuracy, model saved |
+| 2026-03-01 | Phase E | ML Model Training (V2) | 781-feature binary planes, ~55% accuracy, legal move masking |
 ---
 
 ## Key Decisions
