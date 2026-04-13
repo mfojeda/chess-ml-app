@@ -1,19 +1,13 @@
-# Project Diagrams
+# Architecture Diagrams
 
-Visual documentation for the Chess ML Application.
+All diagrams use [Mermaid](https://mermaid.js.org) and render automatically on GitHub.
 
-## Available Diagrams
+| # | Diagram | What it shows |
+|---|---|---|
+| 01 | [Full Workflow](01_workflow.md) | All project phases from data collection to mobile deployment |
+| 02 | [ETL Data Flow](02_dataflow.md) | How raw Lichess PGN data flows into PostgreSQL |
+| 03 | [Database ERD](03_database_erd.md) | Entity relationship diagram for the PostgreSQL schema |
+| 04 | [ETL Process Detail](04_etl_process.md) | Step-by-step Extract → Transform → Load pipeline |
+| 05 | [Gameplay Flow](05_gameplay_flow.md) | Runtime data flow during a live game (user tap → API → model → board) |
 
-1. **[Workflow Diagram](01_workflow.md)** - Complete project phases from start to deployment
-2. **[Data Flow Diagram](02_dataflow.md)** - How data moves through the system
-3. **[Database ERD](03_database_erd.md)** - Entity Relationship Diagram showing database schema
-4. **[ETL Process](04_etl_process.md)** - Detailed Extract-Transform-Load pipeline
-
-## Viewing the Diagrams
-
-These diagrams use Mermaid syntax and will render automatically when viewed on GitHub.
-
-To view locally, you can use:
-- [Mermaid Live Editor](https://mermaid.live)
-- VS Code with Mermaid extension
-- Any markdown viewer that supports Mermaid
+To view locally: open any `.md` file in VS Code with the Mermaid extension, or paste diagrams into [mermaid.live](https://mermaid.live).

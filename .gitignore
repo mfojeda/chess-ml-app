@@ -1,3 +1,6 @@
+# Claude Code
+.claude/
+
 # Python
 chess_env/
 __pycache__/

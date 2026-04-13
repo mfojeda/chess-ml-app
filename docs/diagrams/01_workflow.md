@@ -1,52 +1,52 @@
-# Chess ML Pipeline - Workflow Diagram
+# Chess AI — Full Project Workflow
+
 ```mermaid
 graph TB
-    Start([Start: Project Goal]) --> Download[Download Chess Games<br/>from Lichess]
-    
-    Download --> Decompress[Decompress Archive<br/>zstd -d]
-    
-    Decompress --> Sample[Extract Sample<br/>1,000 games]
-    
-    Sample --> Parse[Parse PGN Files<br/>Python + chess.pgn]
-    
-    Parse --> ExtractGames[Extract Game Metadata<br/>Players, ELO, Results]
-    
-    Parse --> ExtractPos[Extract Positions<br/>Replay moves, capture FEN]
-    
-    ExtractGames --> LoadGames[Load to PostgreSQL<br/>games table]
-    
-    ExtractPos --> LoadPos[Load to PostgreSQL<br/>positions table]
-    
-    LoadGames --> Verify{Data Quality<br/>Check}
-    LoadPos --> Verify
-    
-    Verify -->|Pass| Commit[Commit to Git<br/>Push to GitHub]
-    Verify -->|Fail| Debug[Debug & Fix Issues]
-    
-    Debug --> Parse
-    
-    Commit --> NextPhase{Next Phase}
-    
-    NextPhase -->|Option 1| EDA[Exploratory<br/>Data Analysis]
-    NextPhase -->|Option 2| Scale[Scale Up<br/>More Data]
-    NextPhase -->|Option 3| ML[Build ML Model]
-    
-    EDA --> ML
-    Scale --> EDA
-    
-    ML --> Train[Train Neural Network]
-    Train --> Evaluate[Evaluate Model]
-    Evaluate --> Deploy[Deploy API]
-    Deploy --> Frontend[Build Frontend]
-    Frontend --> End([Complete Application])
-    
-    style Start fill:#e1f5e1
-    style End fill:#e1f5e1
-    style Download fill:#fff4e6
-    style Parse fill:#e3f2fd
-    style LoadGames fill:#f3e5f5
-    style LoadPos fill:#f3e5f5
-    style Commit fill:#e8f5e9
-    style ML fill:#fce4ec
-    style Train fill:#fce4ec
+    Start([🏁 Project Start]) --> DL
+
+    subgraph Phase1["Phase 1 — Data Collection ✅"]
+        DL[Download Lichess PGN\n4M games/month]
+        DL --> Sample[Sample 2,200 games]
+        Sample --> Parse[Parse PGN\npython-chess]
+        Parse --> Load[Load to PostgreSQL\n112,466 positions]
+    end
+
+    subgraph Phase2["Phase 2 — EDA ✅"]
+        Load --> EDA[Exploratory Data Analysis\nJupyter + matplotlib]
+        EDA --> Insights[Key insights:\nELO correlation, opening stats\nmove frequency distribution]
+    end
+
+    subgraph Phase3["Phase 3 — Modeling ✅"]
+        Insights --> V1[Train V1 Model\n65 features · 6.95% accuracy]
+        V1 --> V2[Train V2 Model\n781 features · 89.05% accuracy\nBatchNorm · legal move masking]
+    end
+
+    subgraph Phase4["Phase 4 — Evaluation ✅"]
+        V2 --> Eval[Evaluate on held-out test set\nTop-1: 89% · Top-3: 94% · Top-5: 95%\n0% fallback · no overfitting]
+    end
+
+    subgraph Phase5["Phase 5 — API ✅"]
+        Eval --> API[Flask REST API\nPOST /api/move\nPOST /api/game\nGET /api/stats]
+    end
+
+    subgraph Phase6["Phase 6 — Frontend ✅"]
+        API --> FE[Mobile-first SVG chess board\nTouch interaction · player cards\nAI thinking animation · move history]
+    end
+
+    subgraph Phase7["Phase 7 — Deployment ⏳"]
+        FE --> Fix[Fix production blockers\ndebug=False · gunicorn · slim requirements]
+        Fix --> Deploy[Deploy backend\nRender or Railway free tier]
+        Deploy --> Cap[Capacitor mobile app\nAndroid APK + iOS IPA]
+        Cap --> End([📱 Native App])
+    end
+
+    style Start fill:#22c55e,color:#fff
+    style End fill:#3b82f6,color:#fff
+    style Phase1 fill:#f0fdf4
+    style Phase2 fill:#eff6ff
+    style Phase3 fill:#fdf4ff
+    style Phase4 fill:#fff7ed
+    style Phase5 fill:#f0fdf4
+    style Phase6 fill:#eff6ff
+    style Phase7 fill:#fafafa,stroke:#d1d5db,stroke-dasharray:5
 ```
