@@ -1,0 +1,11 @@
+# Production dependencies only — no Jupyter, notebooks, or dev tools
+# Install with: pip install -r requirements-prod.txt
+
+flask==3.1.2
+sqlalchemy==2.0.45
+psycopg2-binary==2.9.11
+python-chess==1.999
+tensorflow-cpu==2.20.0
+numpy==2.3.5
+scikit-learn==1.8.0
+gunicorn==25.3.0

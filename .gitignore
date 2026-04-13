@@ -37,8 +37,10 @@ build/
 .env
 config.py
 
-# Model files
+# Model files (keep specific production files tracked)
 *.h5
 *.pkl
 *.joblib
 models/saved_models/
+!models/chess_move_predictor_v2.h5
+!models/label_encoder_v2.pkl
