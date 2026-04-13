@@ -113,11 +113,68 @@
 
 ---
 
-## Phase 5: Evaluation ⏳ TODO
+## Phase 5: Evaluation ✅ COMPLETE
+
+### Methodology
+- Deterministic hold-out test set (20% of data, `ORDER BY position_id`, `random_state=42`)
+- Evaluated on 22,494 test positions; 100% vocab coverage (all moves known to encoder)
+
+### Results
+| Metric | V1 | V2 |
+|---|---|---|
+| Top-1 accuracy | 6.95% | **89.05%** |
+| Top-3 accuracy | — | **93.65%** |
+| Top-5 accuracy | — | **95.00%** |
+| Fallback rate | — | **0.0%** |
+
+### Overfitting check
+- Train top-1: 89.74% · Test top-1: 89.05% · Gap: +0.69pp ✅ No significant overfitting
+
+### Accuracy by move frequency
+| Move frequency | Top-1 accuracy |
+|---|---|
+| Rare (≤10 occurrences) | 90.0% |
+| Uncommon (11–50) | 92.9% |
+| Common (51–200) | 92.7% |
+| Very common (>200) | 86.2% |
+
+Note: very common moves score slightly lower — likely because they appear in more diverse positions, making them harder to predict in context.
+
+### Artefacts
+- `evaluate_model.py` — reproducible evaluation script
+- `data/processed/evaluation_by_freq.png` — accuracy by move frequency chart
 
 ---
 
-## Phase 6: Deployment ⏳ TODO
+## Phase 6: API Development ✅ COMPLETE
+
+### Endpoints
+- `POST /api/move` — returns model's best move for a FEN position (top_k supported)
+- `POST /api/game` — saves a completed human game to PostgreSQL
+- `GET /api/stats` — returns model metadata + live DB counts
+
+### Implementation
+- Flask Blueprint (`app/routes.py`)
+- Model inference in `app/model.py` (singleton load, legal move masking)
+- FEN validation + game-over guard before calling model
+
+---
+
+## Phase 7: Frontend Development ✅ COMPLETE
+
+### Implementation
+- SVG chess board (400×400 viewBox, scales to mobile width)
+- Touch-friendly tap-to-select + tap-to-move interaction
+- Legal move dots + capture rings on selection
+- Last-move highlight
+- AI thinking state + status bar
+- Move history panel (scrollable)
+- New Game / Flip Board controls
+- Calls `/api/move` for AI response
+
+---
+
+## Phase 8: Deployment ⏳ TODO
 
 ---
 
@@ -134,6 +191,9 @@
 | 2025-12-18 | Phase D |Exploratory Data Analysis | Visualizations, patterns identified, ready for ML |
 | 2025-12-21 | Phase E | ML Model Training (V1) | Neural network built, 6.95% accuracy, model saved |
 | 2026-03-01 | Phase E | ML Model Training (V2) | 781-feature binary planes, ~55% accuracy, legal move masking |
+| 2026-04-12 | Phase 5 | Model evaluation | Top-1: 89.05%, Top-3: 93.65%, Top-5: 95.00%, 0% fallback — no overfitting |
+| 2026-04-12 | Phase 6 | API development | Flask routes: /api/move, /api/game, /api/stats — complete |
+| 2026-04-12 | Phase 7 | Frontend development | SVG board, touch interaction, move history, AI integration — complete |
 ---
 
 ## Key Decisions

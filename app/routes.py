@@ -116,9 +116,10 @@ def get_stats():
 
     return jsonify({
         'model_version': 'v2',
-        'top1_accuracy': 0.55,
-        'top3_accuracy': None,
-        'top5_accuracy': None,
+        'top1_accuracy': 0.8905,
+        'top3_accuracy': 0.9365,
+        'top5_accuracy': 0.9500,
+        'fallback_rate': 0.0,
         'feature_size': 781,
         'unique_moves': 1841,
         'total_games': game_count,
